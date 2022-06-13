@@ -1,14 +1,18 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/wfabjanczuk/botProxy/internal/requests"
 	"log"
 	"net/http"
+	"os"
 )
+
+var botId string
 
 func Install(w http.ResponseWriter, r *http.Request) {
 	installationSteps := []func(w http.ResponseWriter) bool{
-		createBot, setBotRoutingStatus,
+		createBot, setRoutingStatus, registerWebhook,
 	}
 
 	for _, stepFunction := range installationSteps {
@@ -23,7 +27,7 @@ func Install(w http.ResponseWriter, r *http.Request) {
 
 func createBot(w http.ResponseWriter) bool {
 	var err error
-	BotId, err = requests.CreateBot("Onboarding bot")
+	botId, err = requests.CreateBot("Onboarding bot")
 
 	if err != nil {
 		log.Println(err)
@@ -37,14 +41,40 @@ func createBot(w http.ResponseWriter) bool {
 	return true
 }
 
-func setBotRoutingStatus(w http.ResponseWriter) bool {
-	err := requests.SetRoutingStatus(BotId, "accepting_chats")
+func setRoutingStatus(w http.ResponseWriter) bool {
+	err := requests.SetRoutingStatus(botId, "accepting_chats")
 
 	if err != nil {
 		log.Println(err)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Installation failed - could not set routing status of the bot."))
+
+		return false
+	}
+
+	return true
+}
+
+func registerWebhook(w http.ResponseWriter) bool {
+	var err error
+
+	baseAppUrl := os.Getenv("BASE_APP_URL")
+	if len(baseAppUrl) == 0 {
+		err = errors.New("base app url is not set")
+	}
+
+	if err == nil {
+		err = requests.RegisterWebhook("incoming_event", baseAppUrl+"/webhook", "bot", requests.WebhookFilters{
+			AuthorType: "customer",
+		})
+	}
+
+	if err != nil {
+		log.Println(err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Installation failed - could not register webhook."))
 
 		return false
 	}
