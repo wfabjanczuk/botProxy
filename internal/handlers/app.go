@@ -10,7 +10,7 @@ import (
 type app struct {
 	conf              config.Config
 	client            *requests.Client
-	installationSteps []func(w http.ResponseWriter) bool
+	installationSteps []func(w http.ResponseWriter, r *http.Request) bool
 	botId             string
 }
 
@@ -19,8 +19,14 @@ func NewApp(conf config.Config) *app {
 		conf:   conf,
 		client: requests.NewClient(conf),
 	}
-	a.installationSteps = []func(w http.ResponseWriter) bool{
-		a.createBot, a.setRoutingStatus, a.unregisterOldWebhooks, a.registerWebhook, a.enableLicenseWebhooks,
+
+	a.installationSteps = []func(w http.ResponseWriter, r *http.Request) bool{
+		a.authorize,
+		a.createBot,
+		a.setRoutingStatus,
+		a.unregisterOldWebhooks,
+		a.registerWebhook,
+		a.enableLicenseWebhooks,
 	}
 
 	return a

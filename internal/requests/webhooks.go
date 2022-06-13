@@ -137,24 +137,13 @@ func (c *Client) RegisterWebhook(action, url, webhookType string, filters Webhoo
 	return nil
 }
 
-type toggleLicenseWebhooksPayload struct {
-	OwnerClientId string `json:"owner_client_id"`
-}
-
 func (c *Client) EnableLicenseWebhooks() error {
 	errPrefix := "enabling license webhooks failed: "
-
-	payload, err := json.Marshal(&toggleLicenseWebhooksPayload{
-		OwnerClientId: c.conf.ClientId,
-	})
-	if err != nil {
-		return errors.New(errPrefix + err.Error())
-	}
 
 	request, err := c.newApiRequest(
 		"POST",
 		"/configuration/action/enable_license_webhooks",
-		string(payload),
+		"{}",
 	)
 
 	response, err := http.DefaultClient.Do(request)

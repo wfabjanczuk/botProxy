@@ -1,14 +1,15 @@
 package requests
 
 import (
-	"encoding/base64"
 	"github.com/wfabjanczuk/botProxy/internal/config"
 	"net/http"
 	"strings"
 )
 
 type Client struct {
-	conf config.Config
+	conf         config.Config
+	accessToken  string
+	refreshToken string
 }
 
 func NewClient(conf config.Config) *Client {
@@ -24,9 +25,8 @@ func (c *Client) newApiRequest(method, path, body string) (*http.Request, error)
 		return nil, err
 	}
 
-	basicAuthToken := base64.StdEncoding.EncodeToString([]byte(c.conf.AccountId + ":" + c.conf.PAT))
 	r.Header = map[string][]string{
-		"Authorization": {"Basic " + basicAuthToken},
+		"Authorization": {"Bearer " + c.accessToken},
 		"Content-Type":  {"application/json"},
 	}
 

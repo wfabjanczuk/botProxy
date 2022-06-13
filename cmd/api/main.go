@@ -26,16 +26,6 @@ func getConfig() config.Config {
 
 	conf := config.Config{}
 
-	conf.AccountId = os.Getenv("ACCOUNT_ID")
-	if len(conf.AccountId) == 0 {
-		log.Fatal("account id not set")
-	}
-
-	conf.PAT = os.Getenv("PAT")
-	if len(conf.PAT) == 0 {
-		log.Fatal("pat not set")
-	}
-
 	conf.ClientId = os.Getenv("CLIENT_ID")
 	if len(conf.ClientId) == 0 {
 		log.Fatal("client id not set")
@@ -44,6 +34,11 @@ func getConfig() config.Config {
 	conf.SecretKey = os.Getenv("SECRET_KEY")
 	if len(conf.SecretKey) == 0 {
 		log.Fatal("secret key not set")
+	}
+
+	conf.BaseAccountsUrl = os.Getenv("BASE_ACCOUNTS_URL")
+	if len(conf.BaseAccountsUrl) == 0 {
+		log.Fatal("base accounts url not set")
 	}
 
 	conf.BaseApiUrl = os.Getenv("BASE_API_URL")

@@ -8,8 +8,7 @@ import (
 )
 
 type createBotPayload struct {
-	Name          string `json:"name"`
-	OwnerClientId string `json:"owner_client_id"`
+	Name string `json:"name"`
 }
 
 type createBotResponse struct {
@@ -20,8 +19,7 @@ func (c *Client) CreateBot(name string) (botId string, err error) {
 	errPrefix := "creating bot failed: "
 
 	payload, err := json.Marshal(&createBotPayload{
-		Name:          name,
-		OwnerClientId: c.conf.ClientId,
+		Name: name,
 	})
 	if err != nil {
 		return botId, errors.New(errPrefix + err.Error())
