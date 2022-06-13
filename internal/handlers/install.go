@@ -36,6 +36,25 @@ func (a *app) setRoutingStatus(w http.ResponseWriter) bool {
 	return true
 }
 
+func (a *app) unregisterOldWebhooks(w http.ResponseWriter) bool {
+	safeErrorMessage := "Installation failed - could not unregister old webhooks."
+	ids, err := a.client.ListWebhooks()
+
+	if err != nil {
+		return a.writeServerError(w, err, safeErrorMessage)
+	}
+
+	for _, id := range ids {
+		err = a.client.UnregisterWebhook(id)
+
+		if err != nil {
+			return a.writeServerError(w, err, safeErrorMessage)
+		}
+	}
+
+	return true
+}
+
 func (a *app) registerWebhook(w http.ResponseWriter) bool {
 	err := a.client.RegisterWebhook("incoming_event", a.conf.BaseAppUrl+"/webhook", "bot", requests.WebhookFilters{
 		AuthorType: "customer",

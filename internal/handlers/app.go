@@ -20,7 +20,7 @@ func NewApp(conf config.Config) *app {
 		client: requests.NewClient(conf),
 	}
 	a.installationSteps = []func(w http.ResponseWriter) bool{
-		a.createBot, a.setRoutingStatus, a.registerWebhook, a.enableLicenseWebhooks,
+		a.createBot, a.setRoutingStatus, a.unregisterOldWebhooks, a.registerWebhook, a.enableLicenseWebhooks,
 	}
 
 	return a
