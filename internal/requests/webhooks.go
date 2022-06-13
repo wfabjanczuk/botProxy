@@ -61,3 +61,39 @@ func RegisterWebhook(action, url, webhookType string, filters WebhookFilters) er
 
 	return nil
 }
+
+type toggleLicenseWebhooksPayload struct {
+	OwnerClientId string `json:"owner_client_id"`
+}
+
+func EnableLicenseWebhooks() error {
+	ownerClientId := os.Getenv("CLIENT_ID")
+
+	if len(ownerClientId) == 0 {
+		return errors.New("client id not set")
+	}
+
+	payload, err := json.Marshal(&toggleLicenseWebhooksPayload{
+		OwnerClientId: ownerClientId,
+	})
+	if err != nil {
+		return err
+	}
+
+	request, err := newApiRequest(
+		"POST",
+		baseApiUrl+"/configuration/action/enable_license_webhooks",
+		string(payload),
+	)
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return errors.New("enabling license webhooks failed")
+	}
+
+	return nil
+}

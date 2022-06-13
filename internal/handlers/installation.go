@@ -12,7 +12,7 @@ var botId string
 
 func Install(w http.ResponseWriter, r *http.Request) {
 	installationSteps := []func(w http.ResponseWriter) bool{
-		createBot, setRoutingStatus, registerWebhook,
+		createBot, setRoutingStatus, registerWebhook, enableLicenseWebhooks,
 	}
 
 	for _, stepFunction := range installationSteps {
@@ -75,6 +75,30 @@ func registerWebhook(w http.ResponseWriter) bool {
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Installation failed - could not register webhook."))
+
+		return false
+	}
+
+	return true
+}
+
+func enableLicenseWebhooks(w http.ResponseWriter) bool {
+	var err error
+
+	baseAppUrl := os.Getenv("BASE_APP_URL")
+	if len(baseAppUrl) == 0 {
+		err = errors.New("base app url is not set")
+	}
+
+	if err == nil {
+		err = requests.EnableLicenseWebhooks()
+	}
+
+	if err != nil {
+		log.Println(err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Installation failed - could not enable license webhooks."))
 
 		return false
 	}
