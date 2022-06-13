@@ -96,7 +96,7 @@ type registerWebhookPayload struct {
 	Url           string         `json:"url"`
 	Filters       WebhookFilters `json:"filters"`
 	OwnerClientId string         `json:"owner_client_id"`
-	WebhookType   string         `json:"type"`
+	Type          string         `json:"type"`
 }
 
 type WebhookFilters struct {
@@ -112,7 +112,7 @@ func (c *Client) RegisterWebhook(action, url, webhookType string, filters Webhoo
 		Url:           url,
 		Filters:       filters,
 		OwnerClientId: c.conf.ClientId,
-		WebhookType:   webhookType,
+		Type:          webhookType,
 	})
 	if err != nil {
 		return errors.New(errPrefix + err.Error())

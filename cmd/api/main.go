@@ -13,6 +13,8 @@ func main() {
 	app := handlers.NewApp(getConfig())
 
 	http.HandleFunc("/install", app.Install)
+	http.HandleFunc("/reply", app.Reply)
+
 	log.Fatal(http.ListenAndServeTLS(":8080", "server.crt", "server.key", nil))
 }
 

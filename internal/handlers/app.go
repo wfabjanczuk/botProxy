@@ -27,9 +27,17 @@ func NewApp(conf config.Config) *app {
 }
 
 func (a *app) writeServerError(w http.ResponseWriter, err error, safeMessage string) bool {
+	return a.writeError(w, err, safeMessage, http.StatusInternalServerError)
+}
+
+func (a *app) writeClientError(w http.ResponseWriter, err error, safeMessage string) bool {
+	return a.writeError(w, err, safeMessage, http.StatusBadRequest)
+}
+
+func (a *app) writeError(w http.ResponseWriter, err error, safeMessage string, statusCode int) bool {
 	log.Println(err)
 
-	w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(statusCode)
 	w.Write([]byte(safeMessage))
 
 	return false

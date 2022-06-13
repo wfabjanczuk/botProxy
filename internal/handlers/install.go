@@ -56,7 +56,7 @@ func (a *app) unregisterOldWebhooks(w http.ResponseWriter) bool {
 }
 
 func (a *app) registerWebhook(w http.ResponseWriter) bool {
-	err := a.client.RegisterWebhook("incoming_event", a.conf.BaseAppUrl+"/webhook", "bot", requests.WebhookFilters{
+	err := a.client.RegisterWebhook("incoming_event", a.conf.BaseAppUrl+"/reply", "bot", requests.WebhookFilters{
 		AuthorType: "customer",
 	})
 
