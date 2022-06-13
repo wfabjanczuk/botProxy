@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 type createBotPayload struct {
@@ -17,47 +16,45 @@ type createBotResponse struct {
 	Id string `json:"id"`
 }
 
-func CreateBot(name string) (botId string, err error) {
-	ownerClientId := os.Getenv("CLIENT_ID")
-	if len(ownerClientId) == 0 {
-		return botId, errors.New("client id not set")
-	}
+func (c *Client) CreateBot(name string) (botId string, err error) {
+	errPrefix := "creating bot failed: "
 
 	payload, err := json.Marshal(&createBotPayload{
 		Name:          name,
-		OwnerClientId: ownerClientId,
+		OwnerClientId: c.conf.ClientId,
 	})
 	if err != nil {
-		return botId, err
+		return botId, errors.New(errPrefix + err.Error())
 	}
 
-	request, err := newApiRequest(
+	request, err := c.newApiRequest(
 		"POST",
-		baseApiUrl+"/configuration/action/create_bot",
+		"/configuration/action/create_bot",
 		string(payload),
 	)
 	if err != nil {
-		return botId, err
+		return botId, errors.New(errPrefix + err.Error())
 	}
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return botId, err
+		return botId, errors.New(errPrefix + err.Error())
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return botId, errors.New("creating bot failed")
+		body, _ := ioutil.ReadAll(response.Body)
+		return botId, errors.New(errPrefix + "api responded: " + string(body))
 	}
 
 	responseBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return botId, err
+		return botId, errors.New(errPrefix + err.Error())
 	}
 
 	result := &createBotResponse{}
 	err = json.Unmarshal(responseBody, result)
 	if err != nil {
-		return botId, err
+		return botId, errors.New(errPrefix + err.Error())
 	}
 
 	return result.Id, nil

@@ -3,6 +3,7 @@ package requests
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -11,28 +12,31 @@ type setRoutingStatusPayload struct {
 	Status  string `json:"status"`
 }
 
-func SetRoutingStatus(agentId, status string) error {
+func (c *Client) SetRoutingStatus(agentId, status string) error {
+	errPrefix := "setting routing status failed: "
+
 	payload, err := json.Marshal(&setRoutingStatusPayload{
 		AgentId: agentId,
 		Status:  status,
 	})
 
-	request, err := newApiRequest(
+	request, err := c.newApiRequest(
 		"POST",
-		baseApiUrl+"/agent/action/set_routing_status",
+		"/agent/action/set_routing_status",
 		string(payload),
 	)
 	if err != nil {
-		return err
+		return errors.New(errPrefix + err.Error())
 	}
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return err
+		return errors.New(errPrefix + err.Error())
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return errors.New("setting routing status failed")
+		body, _ := ioutil.ReadAll(response.Body)
+		return errors.New(errPrefix + "api responded: " + string(body))
 	}
 
 	return nil

@@ -3,8 +3,8 @@ package requests
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 type registerWebhookPayload struct {
@@ -20,43 +20,35 @@ type WebhookFilters struct {
 	AuthorType string `json:"author_type"`
 }
 
-func RegisterWebhook(action, url, webhookType string, filters WebhookFilters) error {
-	secretKey := os.Getenv("SECRET_KEY")
-	ownerClientId := os.Getenv("CLIENT_ID")
-
-	if len(secretKey) == 0 {
-		return errors.New("client secret key not set")
-	}
-
-	if len(ownerClientId) == 0 {
-		return errors.New("client id not set")
-	}
+func (c *Client) RegisterWebhook(action, url, webhookType string, filters WebhookFilters) error {
+	errPrefix := "registering webhook failed: "
 
 	payload, err := json.Marshal(&registerWebhookPayload{
 		Action:        action,
-		SecretKey:     secretKey,
+		SecretKey:     c.conf.SecretKey,
 		Url:           url,
 		Filters:       filters,
-		OwnerClientId: ownerClientId,
+		OwnerClientId: c.conf.ClientId,
 		WebhookType:   webhookType,
 	})
 	if err != nil {
-		return err
+		return errors.New(errPrefix + err.Error())
 	}
 
-	request, err := newApiRequest(
+	request, err := c.newApiRequest(
 		"POST",
-		baseApiUrl+"/configuration/action/register_webhook",
+		"/configuration/action/register_webhook",
 		string(payload),
 	)
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return err
+		return errors.New(errPrefix + err.Error())
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return errors.New("registering webhook failed")
+		body, _ := ioutil.ReadAll(response.Body)
+		return errors.New(errPrefix + "api responded: " + string(body))
 	}
 
 	return nil
@@ -66,33 +58,30 @@ type toggleLicenseWebhooksPayload struct {
 	OwnerClientId string `json:"owner_client_id"`
 }
 
-func EnableLicenseWebhooks() error {
-	ownerClientId := os.Getenv("CLIENT_ID")
-
-	if len(ownerClientId) == 0 {
-		return errors.New("client id not set")
-	}
+func (c *Client) EnableLicenseWebhooks() error {
+	errPrefix := "enabling license webhooks failed: "
 
 	payload, err := json.Marshal(&toggleLicenseWebhooksPayload{
-		OwnerClientId: ownerClientId,
+		OwnerClientId: c.conf.ClientId,
 	})
 	if err != nil {
-		return err
+		return errors.New(errPrefix + err.Error())
 	}
 
-	request, err := newApiRequest(
+	request, err := c.newApiRequest(
 		"POST",
-		baseApiUrl+"/configuration/action/enable_license_webhooks",
+		"/configuration/action/enable_license_webhooks",
 		string(payload),
 	)
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return err
+		return errors.New(errPrefix + err.Error())
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return errors.New("enabling license webhooks failed")
+		body, _ := ioutil.ReadAll(response.Body)
+		return errors.New(errPrefix + "api responded: " + string(body))
 	}
 
 	return nil
