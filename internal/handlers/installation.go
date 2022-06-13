@@ -1,69 +1,53 @@
 package handlers
 
 import (
-	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"github.com/wfabjanczuk/botProxy/internal/requests"
 	"log"
 	"net/http"
-	"os"
 )
 
 func Install(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
-	log.Println("Installation request received:", body)
+	installationSteps := []func(w http.ResponseWriter) bool{
+		createBot, setBotRoutingStatus,
+	}
 
-	err := createBot("Onboarding bot")
+	for _, stepFunction := range installationSteps {
+		if !stepFunction(w) {
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Installation successful."))
+}
+
+func createBot(w http.ResponseWriter) bool {
+	var err error
+	BotId, err = requests.CreateBot("Onboarding bot")
 
 	if err != nil {
 		log.Println(err)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Installation failed - could not create the bot."))
-	} else {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Installation successful."))
+
+		return false
 	}
+
+	return true
 }
 
-type createBotPayload struct {
-	Name          string `json:"name"`
-	OwnerClientId string `json:"owner_client_id"`
-}
-
-func createBot(name string) error {
-	ownerClientId := os.Getenv("CLIENT_ID")
-	if len(ownerClientId) == 0 {
-		return errors.New("client id not set")
-	}
-
-	payload, err := json.Marshal(&createBotPayload{
-		Name:          name,
-		OwnerClientId: ownerClientId,
-	})
+func setBotRoutingStatus(w http.ResponseWriter) bool {
+	err := requests.SetRoutingStatus(BotId, "accepting_chats")
 
 	if err != nil {
-		return err
+		log.Println(err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Installation failed - could not set routing status of the bot."))
+
+		return false
 	}
 
-	request, err := getApiRequest(
-		"POST",
-		"https://api.labs.livechatinc.com/v3.4/configuration/action/create_bot",
-		string(payload),
-	)
-
-	if err != nil {
-		return err
-	}
-
-	response, err := http.DefaultClient.Do(request)
-
-	if err != nil {
-		return err
-	}
-
-	if response.StatusCode != http.StatusOK {
-		return errors.New("creating bot failed")
-	}
-
-	return nil
+	return true
 }

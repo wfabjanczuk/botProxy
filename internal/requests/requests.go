@@ -1,4 +1,4 @@
-package handlers
+package requests
 
 import (
 	"encoding/base64"
@@ -8,22 +8,18 @@ import (
 	"strings"
 )
 
-func getApiRequest(method, url, body string) (*http.Request, error) {
+const baseApiUrl = "https://api.labs.livechatinc.com/v3.4"
+
+func newApiRequest(method, url, body string) (*http.Request, error) {
 	r, err := http.NewRequest(method, url, strings.NewReader(body))
 
 	if err != nil {
 		return nil, err
 	}
 
-	headers, err := getApiHeaders()
+	r.Header, err = getApiHeaders()
 
-	if err != nil {
-		return nil, err
-	}
-
-	r.Header = headers
-
-	return r, nil
+	return r, err
 }
 
 func getApiHeaders() (map[string][]string, error) {
