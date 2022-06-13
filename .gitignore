@@ -90,3 +90,9 @@ fabric.properties
 !.idea/runConfigurations
 
 # End of https://www.toptal.com/developers/gitignore/api/goland+all
+
+.env
+server.key
+server.crt
+
+app
