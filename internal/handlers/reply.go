@@ -37,7 +37,7 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageFromBot := "Hi! I am bot " + a.botId
+	messageFromBot := "Hi! I am bot " + a.botId + ". Do you want to talk to a human?"
 	err = a.client.SendEvent(in.Payload.ChatId, a.botId, messageFromBot)
 	if err != nil {
 		a.writeServerError(w, errors.New(errPrefix+err.Error()), "Automatic reply failed.")

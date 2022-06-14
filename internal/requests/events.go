@@ -9,12 +9,26 @@ import (
 
 type sendEventPayload struct {
 	ChatId string `json:"chat_id"`
-	Event  Event  `json:"event"`
+	Event  event  `json:"event"`
 }
 
-type Event struct {
-	Text string `json:"text"`
-	Type string `json:"type"`
+type event struct {
+	Type       string    `json:"type"`
+	TemplateId string    `json:"template_id"`
+	Elements   []element `json:"elements"`
+}
+
+type element struct {
+	Title   string `json:"title"`
+	Buttons []button
+}
+
+type button struct {
+	Text       string   `json:"text"`
+	Type       string   `json:"type"`
+	Value      string   `json:"value"`
+	PostbackId string   `json:"postback_id"`
+	UserIds    []string `json:"user_ids"`
 }
 
 func (c *Client) SendEvent(chatId, authorId, text string) error {
@@ -22,10 +36,7 @@ func (c *Client) SendEvent(chatId, authorId, text string) error {
 
 	payload, err := json.Marshal(&sendEventPayload{
 		ChatId: chatId,
-		Event: Event{
-			Text: text,
-			Type: "message",
-		},
+		Event:  getRichMessageEvent(text),
 	})
 
 	request, err := c.newApiRequest(
@@ -49,4 +60,32 @@ func (c *Client) SendEvent(chatId, authorId, text string) error {
 	}
 
 	return nil
+}
+
+func getRichMessageEvent(text string) event {
+	return event{
+		Type:       "rich_message",
+		TemplateId: "quick_replies",
+		Elements: []element{
+			{
+				Title: text,
+				Buttons: []button{
+					{
+						Text:       "Yes, I want human",
+						Type:       "message",
+						Value:      "transfer_yes",
+						PostbackId: "transfer_yes",
+						UserIds:    []string{},
+					},
+					{
+						Text:       "No, bot is fine",
+						Type:       "message",
+						Value:      "transfer_no",
+						PostbackId: "transfer_no",
+						UserIds:    []string{},
+					},
+				},
+			},
+		},
+	}
 }
