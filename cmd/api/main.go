@@ -36,6 +36,11 @@ func getConfig() config.Config {
 		log.Fatal("secret key not set")
 	}
 
+	conf.HumanId = os.Getenv("HUMAN_ID")
+	if len(conf.HumanId) == 0 {
+		log.Fatal("human id not set")
+	}
+
 	conf.BaseAccountsUrl = os.Getenv("BASE_ACCOUNTS_URL")
 	if len(conf.BaseAccountsUrl) == 0 {
 		log.Fatal("base accounts url not set")
