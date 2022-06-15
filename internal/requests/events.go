@@ -19,8 +19,8 @@ type event struct {
 }
 
 type element struct {
-	Title   string `json:"title"`
-	Buttons []button
+	Title   string   `json:"title"`
+	Buttons []button `json:"buttons"`
 }
 
 type button struct {
