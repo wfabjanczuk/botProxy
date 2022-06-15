@@ -2,90 +2,75 @@ package requests
 
 import (
 	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 )
-
-type sendEventPayload struct {
-	ChatId string `json:"chat_id"`
-	Event  event  `json:"event"`
-}
-
-type event struct {
-	Type       string    `json:"type"`
-	TemplateId string    `json:"template_id"`
-	Elements   []element `json:"elements"`
-}
-
-type element struct {
-	Title   string `json:"title"`
-	Buttons []button
-}
-
-type button struct {
-	Text       string   `json:"text"`
-	Type       string   `json:"type"`
-	Value      string   `json:"value"`
-	PostbackId string   `json:"postback_id"`
-	UserIds    []string `json:"user_ids"`
-}
 
 func (c *Client) SendEvent(chatId, authorId, text string) error {
 	errPrefix := "sending event failed: "
 
-	payload, err := json.Marshal(&sendEventPayload{
-		ChatId: chatId,
-		Event:  getRichMessageEvent(text),
-	})
-
-	request, err := c.newApiRequest(
-		"POST",
-		"/agent/action/send_event",
-		string(payload),
-	)
-	request.Header["X-Author-Id"] = []string{authorId}
+	p, err := c.getSendEventPayload(chatId, text)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	extraHeaders := map[string][]string{"X-Author-Id": {authorId}}
+	_, err = c.doRequest(http.MethodPost, "/agent/action/send_event", p, extraHeaders, false)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
-	}
-
-	if response.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(response.Body)
-		return errors.New(errPrefix + "api responded: " + string(body))
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	return nil
 }
 
-func getRichMessageEvent(text string) event {
-	return event{
-		Type:       "rich_message",
-		TemplateId: "quick_replies",
-		Elements: []element{
-			{
-				Title: text,
-				Buttons: []button{
-					{
-						Text:       "Yes, I want human",
-						Type:       "message",
-						Value:      "yes",
-						PostbackId: "transfer",
-						UserIds:    []string{},
-					},
-					{
-						Text:       "No, bot is fine",
-						Type:       "message",
-						Value:      "no",
-						PostbackId: "transfer",
-						UserIds:    []string{},
+func (c *Client) getSendEventPayload(chatId, text string) ([]byte, error) {
+	type button struct {
+		Text       string   `json:"text"`
+		Type       string   `json:"type"`
+		Value      string   `json:"value"`
+		PostbackId string   `json:"postback_id"`
+		UserIds    []string `json:"user_ids"`
+	}
+	type element struct {
+		Title   string   `json:"title"`
+		Buttons []button `json:"buttons"`
+	}
+	type event struct {
+		Type       string    `json:"type"`
+		TemplateId string    `json:"template_id"`
+		Elements   []element `json:"elements"`
+	}
+	type payload struct {
+		ChatId string `json:"chat_id"`
+		Event  event  `json:"event"`
+	}
+
+	return json.Marshal(&payload{
+		ChatId: chatId,
+		Event: event{
+			Type:       "rich_message",
+			TemplateId: "quick_replies",
+			Elements: []element{
+				{
+					Title: text,
+					Buttons: []button{
+						{
+							Text:       "Yes, I want human",
+							Type:       "message",
+							Value:      "yes",
+							PostbackId: "transfer",
+							UserIds:    []string{},
+						},
+						{
+							Text:       "No, bot is fine",
+							Type:       "message",
+							Value:      "no",
+							PostbackId: "transfer",
+							UserIds:    []string{},
+						},
 					},
 				},
 			},
 		},
-	}
+	})
 }

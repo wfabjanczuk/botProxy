@@ -2,58 +2,36 @@ package requests
 
 import (
 	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 )
 
-type createBotPayload struct {
-	Name string `json:"name"`
-}
-
-type createBotResponse struct {
-	Id string `json:"id"`
-}
-
-func (c *Client) CreateBot(name string) (botId string, err error) {
+func (c *Client) CreateBot(name string) (string, error) {
 	errPrefix := "creating bot failed: "
 
-	payload, err := json.Marshal(&createBotPayload{
-		Name: name,
-	})
+	type payload struct {
+		Name string `json:"name"`
+	}
+
+	p, err := json.Marshal(&payload{Name: name})
 	if err != nil {
-		return botId, errors.New(errPrefix + err.Error())
+		return "", fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	request, err := c.newApiRequest(
-		"POST",
-		"/configuration/action/create_bot",
-		string(payload),
-	)
+	responseBody, err := c.doRequest(http.MethodPost, "/configuration/action/create_bot", p, nil, true)
 	if err != nil {
-		return botId, errors.New(errPrefix + err.Error())
+		return "", fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	type result struct {
+		Id string `json:"id"`
+	}
+
+	r := &result{}
+	err = json.Unmarshal(responseBody, r)
 	if err != nil {
-		return botId, errors.New(errPrefix + err.Error())
+		return "", fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	if response.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(response.Body)
-		return botId, errors.New(errPrefix + "api responded: " + string(body))
-	}
-
-	responseBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return botId, errors.New(errPrefix + err.Error())
-	}
-
-	result := &createBotResponse{}
-	err = json.Unmarshal(responseBody, result)
-	if err != nil {
-		return botId, errors.New(errPrefix + err.Error())
-	}
-
-	return result.Id, nil
+	return r.Id, nil
 }
