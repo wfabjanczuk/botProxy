@@ -23,7 +23,7 @@ func (c *Client) SetRoutingStatus(agentId, status string) error {
 	request, err := c.newApiRequest(
 		"POST",
 		"/agent/action/set_routing_status",
-		string(payload),
+		payload,
 	)
 	if err != nil {
 		return errors.New(errPrefix + err.Error())

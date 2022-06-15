@@ -28,7 +28,7 @@ func (c *Client) CreateBot(name string) (botId string, err error) {
 	request, err := c.newApiRequest(
 		"POST",
 		"/configuration/action/create_bot",
-		string(payload),
+		payload,
 	)
 	if err != nil {
 		return botId, errors.New(errPrefix + err.Error())

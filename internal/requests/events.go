@@ -42,7 +42,7 @@ func (c *Client) SendEvent(chatId, authorId, text string) error {
 	request, err := c.newApiRequest(
 		"POST",
 		"/agent/action/send_event",
-		string(payload),
+		payload,
 	)
 	request.Header["X-Author-Id"] = []string{authorId}
 	if err != nil {

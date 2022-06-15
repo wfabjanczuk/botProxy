@@ -35,7 +35,7 @@ func (c *Client) TransferChat(chatId, targetType string, targetIds []string) err
 	request, err := c.newApiRequest(
 		"POST",
 		"/agent/action/transfer_chat",
-		string(payload),
+		payload,
 	)
 	if err != nil {
 		return errors.New(errPrefix + err.Error())

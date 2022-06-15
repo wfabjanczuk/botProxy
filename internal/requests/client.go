@@ -1,9 +1,9 @@
 package requests
 
 import (
+	"bytes"
 	"github.com/wfabjanczuk/botProxy/internal/config"
 	"net/http"
-	"strings"
 )
 
 type Client struct {
@@ -18,8 +18,8 @@ func NewClient(conf config.Config) *Client {
 	}
 }
 
-func (c *Client) newApiRequest(method, path, body string) (*http.Request, error) {
-	r, err := http.NewRequest(method, c.conf.BaseApiUrl+path, strings.NewReader(body))
+func (c *Client) newApiRequest(method, path string, body []byte) (*http.Request, error) {
+	r, err := http.NewRequest(method, c.conf.BaseApiUrl+path, bytes.NewReader(body))
 
 	if err != nil {
 		return nil, err

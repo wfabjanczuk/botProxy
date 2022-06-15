@@ -29,7 +29,7 @@ func (c *Client) ListWebhooks() ([]string, error) {
 	request, err := c.newApiRequest(
 		"POST",
 		"/configuration/action/list_webhooks",
-		string(payload),
+		payload,
 	)
 
 	response, err := http.DefaultClient.Do(request)
@@ -74,7 +74,7 @@ func (c *Client) UnregisterWebhook(id string) error {
 	request, err := c.newApiRequest(
 		"POST",
 		"/configuration/action/unregister_webhook",
-		string(payload),
+		payload,
 	)
 
 	response, err := http.DefaultClient.Do(request)
@@ -121,7 +121,7 @@ func (c *Client) RegisterWebhook(action, url, webhookType string, filters Webhoo
 	request, err := c.newApiRequest(
 		"POST",
 		"/configuration/action/register_webhook",
-		string(payload),
+		payload,
 	)
 
 	response, err := http.DefaultClient.Do(request)
@@ -143,7 +143,7 @@ func (c *Client) EnableLicenseWebhooks() error {
 	request, err := c.newApiRequest(
 		"POST",
 		"/configuration/action/enable_license_webhooks",
-		"{}",
+		[]byte("{}"),
 	)
 
 	response, err := http.DefaultClient.Do(request)
