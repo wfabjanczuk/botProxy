@@ -9,7 +9,7 @@ import (
 func (c *Client) TransferChat(chatId, targetType string, targetIds []string) error {
 	errPrefix := "transferring chat failed: "
 
-	p, err := getTransferChatPayload(chatId, targetType, targetIds)
+	p, err := c.getTransferChatPayload(chatId, targetType, targetIds)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
@@ -22,7 +22,7 @@ func (c *Client) TransferChat(chatId, targetType string, targetIds []string) err
 	return nil
 }
 
-func getTransferChatPayload(chatId, targetType string, targetIds []string) ([]byte, error) {
+func (c *Client) getTransferChatPayload(chatId, targetType string, targetIds []string) ([]byte, error) {
 	type target struct {
 		Type string   `json:"type"`
 		Ids  []string `json:"ids"`
