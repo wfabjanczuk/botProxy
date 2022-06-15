@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -31,19 +31,19 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		a.writeClientError(w, errors.New(errPrefix+err.Error()), "Invalid request body.")
+		a.writeClientError(w, fmt.Errorf("%s%w", errPrefix, err), "Invalid request body.")
 		return
 	}
 
 	incoming := &incomingRequest{}
 	err = json.Unmarshal(body, incoming)
 	if err != nil {
-		a.writeClientError(w, errors.New(errPrefix+err.Error()), "Invalid JSON.")
+		a.writeClientError(w, fmt.Errorf("%s%w", errPrefix, err), "Invalid JSON.")
 		return
 	}
 
 	if incoming.SecretKey != a.conf.SecretKey {
-		a.writeClientError(w, errors.New(errPrefix+"invalid secret key"), "Invalid Secret.")
+		a.writeClientError(w, fmt.Errorf("%sinvalid secret key", errPrefix), "Invalid Secret.")
 		return
 	}
 
@@ -58,7 +58,7 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		a.writeServerError(w, errors.New(errPrefix+err.Error()), "Automatic reply failed.")
+		a.writeServerError(w, fmt.Errorf("%s%w", errPrefix, err), "Automatic reply failed.")
 		return
 	}
 

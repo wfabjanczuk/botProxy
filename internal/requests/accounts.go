@@ -2,20 +2,14 @@ package requests
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
-type tokens struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
 func (c *Client) Authorize(code string) error {
 	errPrefix := "authorizing failed: "
-	receivedTokens := &tokens{}
 
 	values := url.Values{}
 	values.Set("grant_type", "authorization_code")
@@ -25,24 +19,31 @@ func (c *Client) Authorize(code string) error {
 	values.Set("redirect_uri", c.conf.BaseAppUrl+"/install")
 
 	codeExchangeUrl := c.conf.BaseAccountsUrl + "/token?" + values.Encode()
-	request, err := http.NewRequest("POST", codeExchangeUrl, nil)
+	request, err := http.NewRequest(http.MethodPost, codeExchangeUrl, nil)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
+	type tokens struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	receivedTokens := &tokens{}
 	err = json.Unmarshal(body, receivedTokens)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	c.accessToken = receivedTokens.AccessToken

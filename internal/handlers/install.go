@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/wfabjanczuk/botProxy/internal/requests"
 	"net/http"
 )
 
@@ -67,9 +66,7 @@ func (a *app) unregisterOldWebhooks(w http.ResponseWriter, r *http.Request) bool
 }
 
 func (a *app) registerWebhook(w http.ResponseWriter, r *http.Request) bool {
-	err := a.client.RegisterWebhook("incoming_event", a.conf.BaseAppUrl+"/reply", "bot", requests.WebhookFilters{
-		AuthorType: "customer",
-	})
+	err := a.client.RegisterWebhook("incoming_event", a.conf.BaseAppUrl+"/reply", "bot", "customer")
 
 	if err != nil {
 		return a.writeServerError(w, err, "Installation failed - could not register webhook.")

@@ -2,7 +2,9 @@ package requests
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/wfabjanczuk/botProxy/internal/config"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -13,22 +15,37 @@ type Client struct {
 }
 
 func NewClient(conf config.Config) *Client {
-	return &Client{
-		conf: conf,
-	}
+	return &Client{conf: conf}
 }
 
-func (c *Client) newApiRequest(method, path string, body []byte) (*http.Request, error) {
-	r, err := http.NewRequest(method, c.conf.BaseApiUrl+path, bytes.NewReader(body))
-
+func (c *Client) doApiRequest(method, path string, body []byte, extraHeaders map[string][]string, readResponseBody bool) ([]byte, error) {
+	request, err := http.NewRequest(method, c.conf.BaseApiUrl+path, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
 
-	r.Header = map[string][]string{
+	request.Header = map[string][]string{
 		"Authorization": {"Bearer " + c.accessToken},
 		"Content-Type":  {"application/json"},
 	}
+	for key, value := range extraHeaders {
+		request.Header[key] = value
+	}
 
-	return r, err
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		responseBody, _ := ioutil.ReadAll(response.Body)
+		return nil, fmt.Errorf("api responded: %s", responseBody)
+	}
+
+	if readResponseBody == false {
+		return nil, nil
+	}
+
+	return ioutil.ReadAll(response.Body)
 }

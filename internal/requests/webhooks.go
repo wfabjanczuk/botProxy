@@ -2,158 +2,117 @@ package requests
 
 import (
 	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 )
 
-type listWebhooksPayload struct {
-	OwnerClientId string `json:"owner_client_id"`
-}
-
-type webhookListData struct {
-	Id string `json:"id"`
-}
-
 func (c *Client) ListWebhooks() ([]string, error) {
-	var ids []string
 	errPrefix := "listing webhooks failed: "
 
-	payload, err := json.Marshal(&listWebhooksPayload{
-		OwnerClientId: c.conf.ClientId,
-	})
+	type payload struct {
+		OwnerClientId string `json:"owner_client_id"`
+	}
+
+	p, err := json.Marshal(&payload{OwnerClientId: c.conf.ClientId})
 	if err != nil {
-		return ids, errors.New(errPrefix + err.Error())
+		return nil, fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	request, err := c.newApiRequest(
-		"POST",
-		"/configuration/action/list_webhooks",
-		payload,
-	)
-
-	response, err := http.DefaultClient.Do(request)
+	responseBody, err := c.doApiRequest(http.MethodPost, "/configuration/action/list_webhooks", p, nil, true)
 	if err != nil {
-		return ids, errors.New(errPrefix + err.Error())
+		return nil, fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
-	if response.StatusCode != http.StatusOK || err != nil {
-		return ids, errors.New(errPrefix + "api responded: " + string(body))
+	type webhook struct {
+		Id string `json:"id"`
 	}
 
-	var webhooks []webhookListData
-	err = json.Unmarshal(body, &webhooks)
+	var webhooks []webhook
+	err = json.Unmarshal(responseBody, &webhooks)
 	if err != nil {
-		return ids, errors.New(errPrefix + err.Error())
+		return nil, fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	for _, webhook := range webhooks {
-		ids = append(ids, webhook.Id)
+	var ids []string
+	for _, w := range webhooks {
+		ids = append(ids, w.Id)
 	}
 
 	return ids, nil
 }
 
-type unregisterWebhookPayload struct {
-	Id            string `json:"id"`
-	OwnerClientId string `json:"owner_client_id"`
-}
-
 func (c *Client) UnregisterWebhook(id string) error {
 	errPrefix := "unregistering webhook failed: "
 
-	payload, err := json.Marshal(&unregisterWebhookPayload{
+	type payload struct {
+		Id            string `json:"id"`
+		OwnerClientId string `json:"owner_client_id"`
+	}
+
+	p, err := json.Marshal(&payload{
 		Id:            id,
 		OwnerClientId: c.conf.ClientId,
 	})
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	request, err := c.newApiRequest(
-		"POST",
-		"/configuration/action/unregister_webhook",
-		payload,
-	)
-
-	response, err := http.DefaultClient.Do(request)
+	_, err = c.doApiRequest(http.MethodPost, "/configuration/action/unregister_webhook", p, nil, false)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
-	}
-
-	if response.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(response.Body)
-		return errors.New(errPrefix + "api responded: " + string(body))
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	return nil
 }
 
-type registerWebhookPayload struct {
-	Action        string         `json:"action"`
-	SecretKey     string         `json:"secret_key"`
-	Url           string         `json:"url"`
-	Filters       WebhookFilters `json:"filters"`
-	OwnerClientId string         `json:"owner_client_id"`
-	Type          string         `json:"type"`
-}
-
-type WebhookFilters struct {
-	AuthorType string `json:"author_type"`
-}
-
-func (c *Client) RegisterWebhook(action, url, webhookType string, filters WebhookFilters) error {
+func (c *Client) RegisterWebhook(action, url, webhookType, authorType string) error {
 	errPrefix := "registering webhook failed: "
 
-	payload, err := json.Marshal(&registerWebhookPayload{
-		Action:        action,
-		SecretKey:     c.conf.SecretKey,
-		Url:           url,
-		Filters:       filters,
-		OwnerClientId: c.conf.ClientId,
-		Type:          webhookType,
-	})
+	p, err := c.getRegisterWebhookPayload(action, url, webhookType, authorType)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	request, err := c.newApiRequest(
-		"POST",
-		"/configuration/action/register_webhook",
-		payload,
-	)
-
-	response, err := http.DefaultClient.Do(request)
+	_, err = c.doApiRequest(http.MethodPost, "/configuration/action/register_webhook", p, nil, false)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
-	}
-
-	if response.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(response.Body)
-		return errors.New(errPrefix + "api responded: " + string(body))
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	return nil
+}
+
+func (c *Client) getRegisterWebhookPayload(action, url, webhookType, authorType string) ([]byte, error) {
+	type filters struct {
+		AuthorType string `json:"author_type"`
+	}
+
+	type payload struct {
+		Action        string  `json:"action"`
+		Type          string  `json:"type"`
+		Url           string  `json:"url"`
+		OwnerClientId string  `json:"owner_client_id"`
+		SecretKey     string  `json:"secret_key"`
+		Filters       filters `json:"filters"`
+	}
+
+	return json.Marshal(&payload{
+		Action:        action,
+		Type:          webhookType,
+		Url:           url,
+		OwnerClientId: c.conf.ClientId,
+		SecretKey:     c.conf.SecretKey,
+		Filters: filters{
+			AuthorType: authorType,
+		},
+	})
 }
 
 func (c *Client) EnableLicenseWebhooks() error {
 	errPrefix := "enabling license webhooks failed: "
 
-	request, err := c.newApiRequest(
-		"POST",
-		"/configuration/action/enable_license_webhooks",
-		[]byte("{}"),
-	)
-
-	response, err := http.DefaultClient.Do(request)
+	_, err := c.doApiRequest(http.MethodPost, "/configuration/action/enable_license_webhooks", []byte("{}"), nil, false)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
-	}
-
-	if response.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(response.Body)
-		return errors.New(errPrefix + "api responded: " + string(body))
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	return nil

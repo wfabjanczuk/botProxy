@@ -2,41 +2,29 @@ package requests
 
 import (
 	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 )
-
-type setRoutingStatusPayload struct {
-	AgentId string `json:"agent_id"`
-	Status  string `json:"status"`
-}
 
 func (c *Client) SetRoutingStatus(agentId, status string) error {
 	errPrefix := "setting routing status failed: "
 
-	payload, err := json.Marshal(&setRoutingStatusPayload{
+	type payload struct {
+		AgentId string `json:"agent_id"`
+		Status  string `json:"status"`
+	}
+
+	p, err := json.Marshal(&payload{
 		AgentId: agentId,
 		Status:  status,
 	})
-
-	request, err := c.newApiRequest(
-		"POST",
-		"/agent/action/set_routing_status",
-		payload,
-	)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
+	_, err = c.doApiRequest(http.MethodPost, "/agent/action/set_routing_status", p, nil, false)
 	if err != nil {
-		return errors.New(errPrefix + err.Error())
-	}
-
-	if response.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(response.Body)
-		return errors.New(errPrefix + "api responded: " + string(body))
+		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
 	return nil
