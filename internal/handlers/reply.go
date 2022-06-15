@@ -7,25 +7,6 @@ import (
 	"net/http"
 )
 
-type incomingRequest struct {
-	Payload   payload `json:"payload"`
-	SecretKey string  `json:"secret_key"`
-}
-
-type payload struct {
-	ChatId string `json:"chat_id"`
-	Event  event  `json:"event"`
-}
-
-type event struct {
-	Postback postback `json:"postback"`
-}
-
-type postback struct {
-	Id    string `json:"id"`
-	Value string `json:"value"`
-}
-
 func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 	errPrefix := "replying to webhook request failed: "
 
@@ -33,6 +14,22 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		a.writeClientError(w, fmt.Errorf("%s%w", errPrefix, err), "Invalid request body.")
 		return
+	}
+
+	type postback struct {
+		Id    string `json:"id"`
+		Value string `json:"value"`
+	}
+	type event struct {
+		Postback postback `json:"postback"`
+	}
+	type payload struct {
+		ChatId string `json:"chat_id"`
+		Event  event  `json:"event"`
+	}
+	type incomingRequest struct {
+		Payload   payload `json:"payload"`
+		SecretKey string  `json:"secret_key"`
 	}
 
 	incoming := &incomingRequest{}

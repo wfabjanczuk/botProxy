@@ -27,7 +27,6 @@ func getTransferChatPayload(chatId, targetType string, targetIds []string) ([]by
 		Type string   `json:"type"`
 		Ids  []string `json:"ids"`
 	}
-
 	type payload struct {
 		Id                       string `json:"id"`
 		IgnoreAgentsAvailability bool   `json:"ignore_agents_availability"`

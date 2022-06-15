@@ -31,18 +31,15 @@ func (c *Client) getSendEventPayload(chatId, text string) ([]byte, error) {
 		PostbackId string   `json:"postback_id"`
 		UserIds    []string `json:"user_ids"`
 	}
-
 	type element struct {
 		Title   string   `json:"title"`
 		Buttons []button `json:"buttons"`
 	}
-
 	type event struct {
 		Type       string    `json:"type"`
 		TemplateId string    `json:"template_id"`
 		Elements   []element `json:"elements"`
 	}
-
 	type payload struct {
 		ChatId string `json:"chat_id"`
 		Event  event  `json:"event"`

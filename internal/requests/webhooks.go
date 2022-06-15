@@ -85,7 +85,6 @@ func (c *Client) getRegisterWebhookPayload(action, url, webhookType, authorType 
 	type filters struct {
 		AuthorType string `json:"author_type"`
 	}
-
 	type payload struct {
 		Action        string  `json:"action"`
 		Type          string  `json:"type"`
