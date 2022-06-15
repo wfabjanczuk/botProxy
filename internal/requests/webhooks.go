@@ -18,7 +18,7 @@ func (c *Client) ListWebhooks() ([]string, error) {
 		return nil, fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	responseBody, err := c.doApiRequest(http.MethodPost, "/configuration/action/list_webhooks", p, nil, true)
+	responseBody, err := c.doRequest(http.MethodPost, "/configuration/action/list_webhooks", p, nil, true)
 	if err != nil {
 		return nil, fmt.Errorf("%s%w", errPrefix, err)
 	}
@@ -57,7 +57,7 @@ func (c *Client) UnregisterWebhook(id string) error {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	_, err = c.doApiRequest(http.MethodPost, "/configuration/action/unregister_webhook", p, nil, false)
+	_, err = c.doRequest(http.MethodPost, "/configuration/action/unregister_webhook", p, nil, false)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
@@ -73,7 +73,7 @@ func (c *Client) RegisterWebhook(action, url, webhookType, authorType string) er
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	_, err = c.doApiRequest(http.MethodPost, "/configuration/action/register_webhook", p, nil, false)
+	_, err = c.doRequest(http.MethodPost, "/configuration/action/register_webhook", p, nil, false)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
@@ -110,7 +110,7 @@ func (c *Client) getRegisterWebhookPayload(action, url, webhookType, authorType 
 func (c *Client) EnableLicenseWebhooks() error {
 	errPrefix := "enabling license webhooks failed: "
 
-	_, err := c.doApiRequest(http.MethodPost, "/configuration/action/enable_license_webhooks", []byte("{}"), nil, false)
+	_, err := c.doRequest(http.MethodPost, "/configuration/action/enable_license_webhooks", []byte("{}"), nil, false)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}

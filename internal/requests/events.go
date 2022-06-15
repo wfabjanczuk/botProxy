@@ -15,7 +15,7 @@ func (c *Client) SendEvent(chatId, authorId, text string) error {
 	}
 
 	extraHeaders := map[string][]string{"X-Author-Id": {authorId}}
-	_, err = c.doApiRequest(http.MethodPost, "/agent/action/send_event", p, extraHeaders, false)
+	_, err = c.doRequest(http.MethodPost, "/agent/action/send_event", p, extraHeaders, false)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}

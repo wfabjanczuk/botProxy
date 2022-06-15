@@ -14,7 +14,7 @@ func (c *Client) TransferChat(chatId, targetType string, targetIds []string) err
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	_, err = c.doApiRequest(http.MethodPost, "/agent/action/transfer_chat", p, nil, false)
+	_, err = c.doRequest(http.MethodPost, "/agent/action/transfer_chat", p, nil, false)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}

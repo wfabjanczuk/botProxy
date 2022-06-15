@@ -18,7 +18,7 @@ func NewClient(conf config.Config) *Client {
 	return &Client{conf: conf}
 }
 
-func (c *Client) doApiRequest(method, path string, body []byte, extraHeaders map[string][]string, readResponseBody bool) ([]byte, error) {
+func (c *Client) doRequest(method, path string, body []byte, extraHeaders map[string][]string, readResponseBody bool) ([]byte, error) {
 	request, err := http.NewRequest(method, c.conf.BaseApiUrl+path, bytes.NewReader(body))
 	if err != nil {
 		return nil, err

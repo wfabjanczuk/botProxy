@@ -22,7 +22,7 @@ func (c *Client) SetRoutingStatus(agentId, status string) error {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	_, err = c.doApiRequest(http.MethodPost, "/agent/action/set_routing_status", p, nil, false)
+	_, err = c.doRequest(http.MethodPost, "/agent/action/set_routing_status", p, nil, false)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
 	}

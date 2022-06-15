@@ -18,7 +18,7 @@ func (c *Client) CreateBot(name string) (string, error) {
 		return "", fmt.Errorf("%s%w", errPrefix, err)
 	}
 
-	responseBody, err := c.doApiRequest(http.MethodPost, "/configuration/action/create_bot", p, nil, true)
+	responseBody, err := c.doRequest(http.MethodPost, "/configuration/action/create_bot", p, nil, true)
 	if err != nil {
 		return "", fmt.Errorf("%s%w", errPrefix, err)
 	}
