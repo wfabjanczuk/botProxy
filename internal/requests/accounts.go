@@ -30,6 +30,11 @@ func (c *Client) Authorize(code string) error {
 	}
 	defer response.Body.Close()
 
+	if response.StatusCode != http.StatusOK {
+		responseBody, _ := ioutil.ReadAll(response.Body)
+		return fmt.Errorf("%sapi responded: %s", errPrefix, responseBody)
+	}
+
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return fmt.Errorf("%s%w", errPrefix, err)
