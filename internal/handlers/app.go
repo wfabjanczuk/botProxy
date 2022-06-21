@@ -24,9 +24,6 @@ func NewApp(conf config.Config) *app {
 		a.authorize,
 		a.createBot,
 		a.setRoutingStatus,
-		a.unregisterOldWebhooks,
-		a.registerWebhook,
-		a.enableLicenseWebhooks,
 	}
 
 	return a
