@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (c *Client) TransferChat(chatId, targetType string, targetIds []int) error {
+func (c *Client) TransferChat(chatId, targetType string, targetIds []string) error {
 	errPrefix := "transferring chat failed: "
 
 	p, err := c.getTransferChatPayload(chatId, targetType, targetIds)
@@ -22,10 +22,10 @@ func (c *Client) TransferChat(chatId, targetType string, targetIds []int) error 
 	return nil
 }
 
-func (c *Client) getTransferChatPayload(chatId, targetType string, targetIds []int) ([]byte, error) {
+func (c *Client) getTransferChatPayload(chatId, targetType string, targetIds []string) ([]byte, error) {
 	type target struct {
-		Type string `json:"type"`
-		Ids  []int  `json:"ids"`
+		Type string   `json:"type"`
+		Ids  []string `json:"ids"`
 	}
 	type payload struct {
 		Id                      string `json:"id"`

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -48,11 +49,18 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 	chatId := incoming.Payload.ChatId
 
 	if pb.Id == "transfer" && pb.Value == "yes" {
-		err = a.client.TransferChat(chatId, "group", []int{a.conf.HumanGroupId})
+		var agentsForTransfer []string
+		agentsForTransfer, err = a.client.ListAgentsForTransfer(chatId)
 
 		if err != nil {
-			messageFromBot := "Could not transfer the chat to a human :("
+			log.Println(err)
+		}
+
+		if len(agentsForTransfer) == 0 {
+			messageFromBot := "There are no available humans at the moment :("
 			err = a.client.SendEvent(chatId, a.botId, messageFromBot)
+		} else {
+			err = a.client.TransferChat(chatId, "agent", []string{agentsForTransfer[0]})
 		}
 	} else {
 		messageFromBot := "Hi! I am bot " + a.botId + ". Do you want to talk to a human?"

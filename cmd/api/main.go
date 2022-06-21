@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 func main() {
@@ -35,12 +34,6 @@ func getConfig() config.Config {
 	conf.SecretKey = os.Getenv("SECRET_KEY")
 	if len(conf.SecretKey) == 0 {
 		log.Fatal("secret key not set")
-	}
-
-	humanGroupId := os.Getenv("HUMAN_GROUP_ID")
-	conf.HumanGroupId, err = strconv.Atoi(humanGroupId)
-	if len(humanGroupId) == 0 || err != nil {
-		log.Fatal("human id not set")
 	}
 
 	conf.BaseAccountsUrl = os.Getenv("BASE_ACCOUNTS_URL")
