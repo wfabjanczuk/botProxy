@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (c *Client) ListAgentsForTransfer(chatId string) ([]string, error) {
+func (c *Client) ListAgentsForTransfer(chatId, botId string) ([]string, error) {
 	errPrefix := "listing agents for transfer failed: "
 
 	type payload struct {
@@ -36,7 +36,9 @@ func (c *Client) ListAgentsForTransfer(chatId string) ([]string, error) {
 
 	var ids []string
 	for _, w := range agents {
-		ids = append(ids, w.AgentId)
+		if w.AgentId != botId {
+			ids = append(ids, w.AgentId)
+		}
 	}
 
 	return ids, nil

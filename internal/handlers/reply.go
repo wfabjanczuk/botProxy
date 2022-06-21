@@ -50,7 +50,7 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 
 	if pb.Id == "transfer" && pb.Value == "yes" {
 		var agentsForTransfer []string
-		agentsForTransfer, err = a.client.ListAgentsForTransfer(chatId)
+		agentsForTransfer, err = a.client.ListAgentsForTransfer(chatId, a.botId)
 
 		if err != nil {
 			log.Println(err)
@@ -61,6 +61,13 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 			err = a.client.SendEvent(chatId, a.botId, messageFromBot)
 		} else {
 			err = a.client.TransferChat(chatId, "agent", []string{agentsForTransfer[0]})
+
+			if err != nil {
+				log.Println(err)
+
+				messageFromBot := "Got error when trying to transfer the chat :("
+				err = a.client.SendEvent(chatId, a.botId, messageFromBot)
+			}
 		}
 	} else {
 		messageFromBot := "Hi! I am bot " + a.botId + ". Do you want to talk to a human?"
