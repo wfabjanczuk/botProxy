@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func main() {
@@ -36,8 +37,9 @@ func getConfig() config.Config {
 		log.Fatal("secret key not set")
 	}
 
-	conf.HumanId = os.Getenv("HUMAN_ID")
-	if len(conf.HumanId) == 0 {
+	humanGroupId := os.Getenv("HUMAN_GROUP_ID")
+	conf.HumanGroupId, err = strconv.Atoi(humanGroupId)
+	if len(humanGroupId) == 0 || err != nil {
 		log.Fatal("human id not set")
 	}
 

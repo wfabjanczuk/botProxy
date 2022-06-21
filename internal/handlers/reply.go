@@ -48,7 +48,12 @@ func (a *app) Reply(w http.ResponseWriter, r *http.Request) {
 	chatId := incoming.Payload.ChatId
 
 	if pb.Id == "transfer" && pb.Value == "yes" {
-		err = a.client.TransferChat(chatId, "agent", []string{a.conf.HumanId})
+		err = a.client.TransferChat(chatId, "group", []int{a.conf.HumanGroupId})
+
+		if err != nil {
+			messageFromBot := "Could not transfer the chat to a human :("
+			err = a.client.SendEvent(chatId, a.botId, messageFromBot)
+		}
 	} else {
 		messageFromBot := "Hi! I am bot " + a.botId + ". Do you want to talk to a human?"
 		err = a.client.SendEvent(chatId, a.botId, messageFromBot)

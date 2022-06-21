@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (c *Client) TransferChat(chatId, targetType string, targetIds []string) error {
+func (c *Client) TransferChat(chatId, targetType string, targetIds []int) error {
 	errPrefix := "transferring chat failed: "
 
 	p, err := c.getTransferChatPayload(chatId, targetType, targetIds)
@@ -22,25 +22,23 @@ func (c *Client) TransferChat(chatId, targetType string, targetIds []string) err
 	return nil
 }
 
-func (c *Client) getTransferChatPayload(chatId, targetType string, targetIds []string) ([]byte, error) {
+func (c *Client) getTransferChatPayload(chatId, targetType string, targetIds []int) ([]byte, error) {
 	type target struct {
-		Type string   `json:"type"`
-		Ids  []string `json:"ids"`
+		Type string `json:"type"`
+		Ids  []int  `json:"ids"`
 	}
 	type payload struct {
-		Id                       string `json:"id"`
-		IgnoreAgentsAvailability bool   `json:"ignore_agents_availability"`
-		IgnoreRequesterPresence  bool   `json:"ignore_requester_presence"`
-		Target                   target `json:"target"`
+		Id                      string `json:"id"`
+		Target                  target `json:"target"`
+		IgnoreRequesterPresence bool   `json:"ignore_requester_presence"`
 	}
 
 	return json.Marshal(&payload{
-		Id:                       chatId,
-		IgnoreAgentsAvailability: true,
-		IgnoreRequesterPresence:  true,
+		Id: chatId,
 		Target: target{
 			Type: targetType,
 			Ids:  targetIds,
 		},
+		IgnoreRequesterPresence: true,
 	})
 }
